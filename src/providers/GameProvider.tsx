@@ -1,9 +1,9 @@
 import { createContext, FC, ReactNode, useEffect, useState } from "react";
-import { IJoystick, IPosition } from "../interfaces";
+import { IJoystickPosition, IPosition } from "../interfaces";
 
 export interface IGame {
-    joystickPos?: IJoystick;
-    setJoystickPos?: (joystick: IJoystick) => void;
+    joystickPos?: IJoystickPosition;
+    setJoystickPos?: (joystick: IJoystickPosition) => void;
     position?: IPosition;
     setPosition?: (position: IPosition) => void;
 }
