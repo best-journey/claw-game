@@ -5,7 +5,7 @@ export const angleToRadian = (a: number) => {
     return Math.PI * a / 180;
 }
 
-export const loadOBJ = async (objPath: string, mtlPath: string) => {
+export const loadOBJ = async (objPath: string, mtlPath: string, castShadow: boolean = false, receiveShadow: boolean = false) => {
     const mtlLoader = new MTLLoader();
     const objLoader = new OBJLoader();
 
@@ -24,8 +24,8 @@ export const loadOBJ = async (objPath: string, mtlPath: string) => {
 
     obj.traverse((child: any) => {
         if (child.isMesh) {
-            child.castShadow = true;
-            child.receiveShadow = true;
+            child.castShadow = castShadow;
+            child.receiveShadow = receiveShadow;
         }
     });
 
