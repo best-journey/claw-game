@@ -1,0 +1,9 @@
+# 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
+# File Created: 19.11.2024 02:57:34
+
+newmtl PinkCarPaint
+	Ka 0.5 0.1 0.2    # Ambient color
+	Kd 0.9 0.3 0.5    # Diffuse color
+	Ks 0.8 0.4 0.5    # Specular color
+	Ns 100.0          # Shininess
+	illum 2           # Illumination model

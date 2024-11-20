@@ -1,0 +1,12 @@
+# 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
+# File Created: 17.11.2024 03:38:33
+
+newmtl Floor
+	Ns 32
+	Ka 1 1 1
+	Kd 1 1 1
+	Ks 0 0 0
+	map_Kd floor.jpg
+	Ni 1.0
+    d 1.0
+    illum 2
