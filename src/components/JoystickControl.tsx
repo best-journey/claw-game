@@ -1,13 +1,13 @@
 import { Box } from "@chakra-ui/react";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { GameContext } from "../providers/GameProvider";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 import { DownIcon, LeftIcon, RightIcon, UpIcon } from "./icons";
 
-const JoystickControl = () => {
-    const [isDragging, setIsDragging] = useState(false);
+const JoystickControl: FC<{
+    onJoystick: (x: number, z: number) => void;
+}> = ({ onJoystick }) => {
     const ref = useRef<any>();
-
-    const { joystickPos, setJoystickPos } = useContext(GameContext);
+    const [isDragging, setIsDragging] = useState(false);
+    const [joystickPos, setJoystickPos] = useState({ x: 0, z: 0 });
 
     const updateMousePos = useCallback((e: any) => {
         const rect = ref.current.getBoundingClientRect();
@@ -15,19 +15,20 @@ const JoystickControl = () => {
         const relativeY = e.clientY - rect.top;
 
         let x = relativeX - rect.width / 2;
-        let y = relativeY - rect.height / 2;
+        let z = relativeY - rect.height / 2;
 
         x = Math.min(x, x);
-        y = Math.min(y, y);
+        z = Math.min(z, z);
 
-        const d = Math.hypot(x, y);
+        const d = Math.hypot(x, z);
         if (d > 80) {
             x *= 80 / d;
-            y *= 80 / d;
+            z *= 80 / d;
         }
 
-        setJoystickPos?.({ x, y });
-    }, [setJoystickPos]);
+        setJoystickPos({ x, z });
+        onJoystick(x, z);
+    }, [onJoystick]);
 
     const handleMouseDown = (e: any) => {
         setIsDragging(true);
@@ -41,8 +42,9 @@ const JoystickControl = () => {
 
     const handleMouseUp = useCallback(() => {
         setIsDragging(false);
-        setJoystickPos?.({ x: 0, y: 0 });
-    }, [setJoystickPos]);
+        setJoystickPos({ x: 0, z: 0 });
+        onJoystick(0, 0);
+    }, [onJoystick]);
 
     useEffect(() => {
         window.addEventListener("mouseup", handleMouseUp);
@@ -56,7 +58,7 @@ const JoystickControl = () => {
 
     return (
         <Box ref={ref} position='absolute' zIndex={10} left='64px' bottom='64px' w='160px' h='160px' bg='#0004' rounded='full' cursor='pointer' onMouseDown={handleMouseDown}>
-            <Box position='absolute' left='calc(50% - 30px)' top='calc(50% - 30px)' w='60px' h='60px' bg='white' p={1} rounded='full' style={{ transform: `translate(${joystickPos?.x}px, ${joystickPos?.y}px)` }}>
+            <Box position='absolute' left='calc(50% - 30px)' top='calc(50% - 30px)' w='60px' h='60px' bg='white' p={1} rounded='full' style={{ transform: `translate(${joystickPos?.x}px, ${joystickPos?.z}px)` }}>
                 <Box w='full' h='full' bg='white' border='1px solid #0004' rounded='full' />
             </Box>
             <LeftIcon position='absolute' left={2} top='calc(50% - 6px)' />
