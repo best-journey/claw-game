@@ -1,11 +1,13 @@
-import { FC } from 'react';
+import { forwardRef } from '@chakra-ui/react';
+import { ForwardRefRenderFunction } from 'react';
 import { Group } from 'three';
 import { InteractiveObject3DEventMap } from 'three/examples/jsm/Addons.js';
 
-const Claw: FC<{
-    obj: Group<InteractiveObject3DEventMap>,
-}> = ({ obj }) => {
-    return <primitive rotation={[-0.25, 0, 0]} object={obj} />
+const Claw: ForwardRefRenderFunction<
+    any,
+    { obj: Group<InteractiveObject3DEventMap> }
+> = ({ obj }, ref) => {
+    return <primitive ref={ref} rotation={[-0.25, 0, 0]} object={obj} />
 }
 
-export default Claw;
+export default forwardRef(Claw);
