@@ -9,56 +9,85 @@ const JoystickControl: FC<{
     const [isDragging, setIsDragging] = useState(false);
     const [joystickPos, setJoystickPos] = useState({ x: 0, z: 0 });
 
-    const updateMousePos = useCallback((e: any) => {
+    const updateJoystickPos = useCallback((clientX: number, clientY: number) => {
         const rect = ref.current.getBoundingClientRect();
-        const relativeX = e.clientX - rect.left;
-        const relativeY = e.clientY - rect.top;
+        const relativeX = clientX - rect.left;
+        const relativeY = clientY - rect.top;
 
         let x = relativeX - rect.width / 2;
         let z = relativeY - rect.height / 2;
 
-        x = Math.min(x, x);
-        z = Math.min(z, z);
-
         const d = Math.hypot(x, z);
-        if (d > 80) {
-            x *= 80 / d;
-            z *= 80 / d;
+        if (d > 50) {
+            x *= 50 / d;
+            z *= 50 / d;
         }
 
         setJoystickPos({ x, z });
         onJoystick(x, z);
     }, [onJoystick]);
 
-    const handleMouseDown = (e: any) => {
+    const handleStart = (e: any) => {
         setIsDragging(true);
-        updateMousePos(e);
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        updateJoystickPos(clientX, clientY);
     };
 
-    const handleMouseMove = useCallback((e: any) => {
-        if (isDragging)
-            updateMousePos(e);
-    }, [isDragging, updateMousePos]);
+    const handleMove = useCallback((e: any) => {
+        if (isDragging) {
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            updateJoystickPos(clientX, clientY);
+        }
+    }, [isDragging, updateJoystickPos]);
 
-    const handleMouseUp = useCallback(() => {
+    const handleEnd = useCallback(() => {
         setIsDragging(false);
         setJoystickPos({ x: 0, z: 0 });
         onJoystick(0, 0);
     }, [onJoystick]);
 
     useEffect(() => {
-        window.addEventListener("mouseup", handleMouseUp);
-        window.addEventListener("mousemove", handleMouseMove);
+        window.addEventListener("mouseup", handleEnd);
+        window.addEventListener("mousemove", handleMove);
+        window.addEventListener("touchend", handleEnd);
+        window.addEventListener("touchmove", handleMove);
 
         return () => {
-            window.removeEventListener("mouseup", handleMouseUp);
-            window.removeEventListener("mousemove", handleMouseMove);
+            window.removeEventListener("mouseup", handleEnd);
+            window.removeEventListener("mousemove", handleMove);
+            window.removeEventListener("touchend", handleEnd);
+            window.removeEventListener("touchmove", handleMove);
         };
-    }, [handleMouseMove, handleMouseUp]);
+    }, [handleMove, handleEnd]);
 
     return (
-        <Box ref={ref} position='absolute' zIndex={10} left='64px' bottom='64px' w='160px' h='160px' bg='#0004' rounded='full' cursor='pointer' onMouseDown={handleMouseDown}>
-            <Box position='absolute' left='calc(50% - 30px)' top='calc(50% - 30px)' w='60px' h='60px' bg='white' p={1} rounded='full' style={{ transform: `translate(${joystickPos?.x}px, ${joystickPos?.z}px)` }}>
+        <Box
+            ref={ref}
+            position='absolute'
+            zIndex={10}
+            left={{ base: '16px', lg: '64px' }}
+            bottom={{ base: '16px', lg: '64px' }}
+            w='160px'
+            h='160px'
+            bg='#0004'
+            rounded='full'
+            cursor='pointer'
+            onMouseDown={handleStart}
+            onTouchStart={handleStart}
+        >
+            <Box
+                position='absolute'
+                left='calc(50% - 30px)'
+                top='calc(50% - 30px)'
+                w='60px'
+                h='60px'
+                bg='white'
+                p={1}
+                rounded='full'
+                style={{ transform: `translate(${joystickPos?.x}px, ${joystickPos?.z}px)` }}
+            >
                 <Box w='full' h='full' bg='white' border='1px solid #0004' rounded='full' />
             </Box>
             <LeftIcon position='absolute' left={2} top='calc(50% - 6px)' />
