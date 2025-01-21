@@ -1,12 +1,15 @@
-import { RigidBody } from '@react-three/rapier';
-import { FC, useEffect, useState } from 'react';
+import { RigidBody, RigidBodyTypeString } from '@react-three/rapier';
+import { forwardRef, ForwardRefRenderFunction, useEffect, useState } from 'react';
 import { Group } from 'three';
 import { InteractiveObject3DEventMap } from 'three/examples/jsm/Addons.js';
 
-const Ball: FC<{
-    obj: Group<InteractiveObject3DEventMap>,
-    position?: any,
-}> = ({ obj, position }) => {
+interface Props {
+    obj: Group<InteractiveObject3DEventMap>;
+    position?: any;
+    type?: RigidBodyTypeString,
+}
+
+const Ball: ForwardRefRenderFunction<any, Props> = ({ type, obj, position }, ref) => {
     const [ball, setBall] = useState<any>();
 
     useEffect(() => {
@@ -15,7 +18,7 @@ const Ball: FC<{
 
     if (ball) {
         return (
-            <RigidBody ccd colliders="ball" position={position}>
+            <RigidBody ref={ref} ccd type={type} colliders="ball" position={position}>
                 <primitive object={ball} />
             </RigidBody>
         )
@@ -23,4 +26,4 @@ const Ball: FC<{
     return <></>
 }
 
-export default Ball;
+export default forwardRef(Ball);
