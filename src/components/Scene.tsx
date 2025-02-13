@@ -1,9 +1,8 @@
-import { OrbitControls } from '@react-three/drei';
+import { Environment, OrbitControls, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { Physics, RigidBody } from '@react-three/rapier';
 import { createRef, forwardRef, ForwardRefRenderFunction, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Vector3 } from 'three';
-import OBJ from '../components/OBJ';
 import { angleToRadian, clonePosition, cloneRotation, cloneScale, getPosition, getRotation, getScale, loadOBJ } from '../utils';
 import Ball from './Ball';
 
@@ -28,17 +27,17 @@ const Scene: ForwardRefRenderFunction<
 > = ({ setIsLoading, setProgress, }, ref) => {
     useImperativeHandle(ref, () => ({ onPick, onJoystick }));
 
+    const floor = useGLTF("/floor.glb");
+    const clawMachine = useGLTF("/clawMachine.glb");
+    const clawRest = useGLTF("/clawRest.glb");
+    const clawRest1 = useGLTF("/clawRest1.glb");
+    const clawRest2 = useGLTF("/clawRest2.glb");
+    const clawRest3 = useGLTF("/clawRest3.glb");
+    const claw1 = useGLTF("/claw1.glb");
+    const claw2 = useGLTF("/claw2.glb");
+    const claw3 = useGLTF("/claw3.glb");
+
     const [showScene, setShowScene] = useState<any>();
-    const [wall, setWall] = useState<any>();
-    const [clawMachine, setClawMachine] = useState<any>();
-    const [clawRest, setClawRest] = useState<any>();
-    const [clawRest1, setClawRest1] = useState<any>();
-    const [clawRest2, setClawRest2] = useState<any>();
-    const [clawRest3, setClawRest3] = useState<any>();
-    const [claw1, setClaw1] = useState<any>();
-    const [claw2, setClaw2] = useState<any>();
-    const [claw3, setClaw3] = useState<any>();
-    const [floor, setFloor] = useState<any>();
     const [balls, setBalls] = useState<any[]>();
     const clawRestRef = useRef<any>();
     const clawRest1Ref = useRef<any>();
@@ -115,7 +114,7 @@ const Scene: ForwardRefRenderFunction<
     const catchAnimationSet = useMemo(() => {
         return [
             { ref: clawRest2Ref, name: 'clawRest2', scale: [1, 8, 1], start: 0, duration: 1.5 },
-            { ref: clawRest3Ref, name: 'clawRest3', position: [0, -1.4, 0], start: 0, duration: 1.5, cb: catchBall },
+            { ref: clawRest3Ref, name: 'clawRest3', position: [0, -1.2, 0], start: 0, duration: 1.5, cb: catchBall },
             { ref: claw1Ref, name: 'claw1', rotation: [0.35, 0, 0], start: 1.7, duration: 0.3 },
             { ref: claw2Ref, name: 'claw2', rotation: [0.35, 0, 0], start: 1.7, duration: 0.3 },
             { ref: claw3Ref, name: 'claw3', rotation: [0.35, 0, 0], start: 1.7, duration: 0.3 },
@@ -130,26 +129,6 @@ const Scene: ForwardRefRenderFunction<
     }
 
     const initGame = useCallback(async () => {
-        const wall = await loadOBJ('/wall.obj', '/wall.mtl');
-        setWall(wall);
-        const floor = await loadOBJ('/floor.obj', '/floor.mtl');
-        setFloor(floor);
-        const clawRest = await loadOBJ('/clawRest.obj', '/clawRest.mtl');
-        setClawRest(clawRest);
-        const clawRest1 = await loadOBJ('/clawRest1.obj', '/clawRest.mtl');
-        setClawRest1(clawRest1);
-        const clawRest2 = await loadOBJ('/clawRest2.obj', '/clawRest.mtl');
-        setClawRest2(clawRest2);
-        const clawRest3 = await loadOBJ('/clawRest3.obj', '/clawRest.mtl');
-        setClawRest3(clawRest3);
-        const claw1 = await loadOBJ('/claw1.obj', '/claw1.mtl');
-        setClaw1(claw1);
-        const claw2 = await loadOBJ('/claw2.obj', '/claw2.mtl');
-        setClaw2(claw2);
-        const claw3 = await loadOBJ('/claw3.obj', '/claw3.mtl');
-        setClaw3(claw3);
-        const clawMachine = await loadOBJ('/clawMachine.obj', '/clawMachine.mtl');
-        setClawMachine(clawMachine);
         const red = await loadOBJ('/ball.obj', '/red.mtl');
         const green = await loadOBJ('/ball.obj', '/green.mtl');
         const blue = await loadOBJ('/ball.obj', '/blue.mtl');
@@ -172,8 +151,8 @@ const Scene: ForwardRefRenderFunction<
         if (clawRestRef.current && clawRest1Ref.current) {
             let z = clawRestRef.current.position.z + joystickRef.current.z * 0.0001;
             let x = clawRest1Ref.current.position.x + joystickRef.current.x * 0.0001;
-            z = Math.max(-1.25, Math.min(0.75, z));
-            x = Math.max(-0.85, Math.min(0.85, x));
+            z = Math.max(-0.75, Math.min(0.45, z));
+            x = Math.max(-0.82, Math.min(0.8, x));
             clawRestRef.current.position.z = z;
             clawRest1Ref.current.position.x = x;
         }
@@ -183,7 +162,7 @@ const Scene: ForwardRefRenderFunction<
             const y = clawRest3Ref.current.position.y;
             const z = clawRestRef.current.position.z;
             const ball = ballRefs.current[selectedIndexRef.current].current;
-            ball.setTranslation(new Vector3(x, y + 1.02, z));
+            ball.setTranslation(new Vector3(x, y + 3.05, z));
         }
 
         animationQueueRef.current = animationQueueRef.current.filter((item) => item.animationSet.length > 0);
@@ -248,26 +227,28 @@ const Scene: ForwardRefRenderFunction<
     if (showScene) {
         return (
             <>
-                <ambientLight intensity={4} />
-                <pointLight position={[-2, 5, 8]} intensity={100} castShadow />
-                <OBJ obj={wall} />
-                <OBJ obj={floor} />
+                <Environment
+                    files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/dancing_hall_1k.hdr"
+                />
+                <ambientLight intensity={2} />
+                <pointLight position={[-2, 5, 8]} intensity={50} castShadow />
+                <primitive object={floor.scene} receiveShadow />
                 <group ref={clawRestRef}>
-                    <group position={[0, 1.28, 0]}>
-                        <OBJ obj={clawRest} />
+                    <group position={[0, 3.28, 0]}>
+                        <primitive object={clawRest.scene} />
                         <group ref={clawRest1Ref} >
-                            <OBJ obj={clawRest1} />
-                            <OBJ ref={clawRest2Ref} obj={clawRest2} position={[0, 0.36, 0]} />
+                            <primitive object={clawRest1.scene} />
+                            <primitive ref={clawRest2Ref} object={clawRest2.scene} position={[0, 0.36, 0]} />
                             <group ref={clawRest3Ref}>
-                                <OBJ obj={clawRest3} />
+                                <primitive object={clawRest3.scene} />
                                 <group rotation={[0, -2.0944, 0]}>
-                                    <OBJ ref={claw1Ref} position={[0, 0, 0.113]} obj={claw3} />
+                                    <primitive ref={claw1Ref} object={claw3.scene} position={[0, 0, 0.113]} />
                                 </group>
                                 <group>
-                                    <OBJ ref={claw2Ref} position={[0, 0, 0.113]} obj={claw1} />
+                                    <primitive ref={claw2Ref} object={claw1.scene} position={[0, 0, 0.113]} />
                                 </group>
                                 <group rotation={[0, 2.0944, 0]}>
-                                    <OBJ ref={claw3Ref} position={[0, 0, 0.113]} obj={claw2} />
+                                    <primitive ref={claw3Ref} object={claw2.scene} position={[0, 0, 0.113]} />
                                 </group>
                             </group>
                         </group>
@@ -276,21 +257,22 @@ const Scene: ForwardRefRenderFunction<
                 <Physics>
                     {Array.from({ length: 18 }).map((_, index) => {
                         const x = Math.floor((index % 9) / 3) * 0.3;
-                        const y = Math.floor(index / 9) * 0.3;
-                        const z = -0.6 + (index % 3) * 0.3;
+                        const y = 2.5 + Math.floor(index / 9) * 0.3;
+                        const z = (index % 3) * 0.3;
                         return <Ball key={index} ref={ballRefs.current[index]} obj={balls?.[index % 6]} position={[x, y, z]} />
                     })}
                     <RigidBody ccd type="fixed" colliders="trimesh">
-                        <OBJ obj={clawMachine} />
+                        <primitive object={clawMachine.scene} castShadow />
                     </RigidBody>
                 </Physics >
                 <OrbitControls
-                    minAzimuthAngle={angleToRadian(-20)}
-                    maxAzimuthAngle={angleToRadian(20)}
+                    minAzimuthAngle={angleToRadian(-15)}
+                    maxAzimuthAngle={angleToRadian(15)}
                     minPolarAngle={angleToRadian(65)}
                     maxPolarAngle={angleToRadian(85)}
                     minDistance={2.5}
-                    maxDistance={5.5}
+                    maxDistance={4.5}
+                    target={[0.0, 2.4, 0.0]}
                     enablePan={false}
                 />
             </>
