@@ -1,29 +1,27 @@
-import { RigidBody, RigidBodyTypeString } from '@react-three/rapier';
-import { forwardRef, ForwardRefRenderFunction, useEffect, useState } from 'react';
-import { Group } from 'three';
-import { InteractiveObject3DEventMap } from 'three/examples/jsm/Addons.js';
+import { BallCollider, RigidBody } from '@react-three/rapier';
+import { forwardRef, ForwardRefRenderFunction, useEffect, useMemo, useState } from 'react';
 
 interface Props {
-    obj: Group<InteractiveObject3DEventMap>;
+    obj: any;
     position?: any;
-    type?: RigidBodyTypeString,
 }
 
-const Ball: ForwardRefRenderFunction<any, Props> = ({ type, obj, position }, ref) => {
-    const [ball, setBall] = useState<any>();
+const Ball: ForwardRefRenderFunction<any, Props> = ({ obj, position }, ref) => {
+    const clonedObj = useMemo(() => obj.clone(), [obj]);
+    const [showObj, setShowObj] = useState(false);
 
     useEffect(() => {
-        setBall(obj.clone());
-    }, [obj]);
+        setTimeout(() => setShowObj(true), 250);
+    }, []);
 
-    if (ball) {
-        return (
-            <RigidBody ref={ref} ccd type={type} colliders="ball" position={position}>
-                <primitive object={ball} />
-            </RigidBody>
-        )
-    }
-    return <></>
+    return (
+        <RigidBody ref={ref} position={position}>
+            <BallCollider args={[0.155]} />
+            {showObj && (
+                <primitive object={clonedObj} />
+            )}
+        </RigidBody>
+    )
 }
 
 export default forwardRef(Ball);
