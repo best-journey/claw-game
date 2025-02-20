@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { Physics, RigidBody } from '@react-three/rapier';
 import { createRef, forwardRef, ForwardRefRenderFunction, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Vector3 } from 'three';
-import { angleToRadian, clonePosition, cloneRotation, cloneScale, getPosition, getRotation, getScale, loadOBJ } from '../utils';
+import { angleToRadian, clonePosition, cloneRotation, cloneScale, getPosition, getRotation, getScale } from '../utils';
 import Ball from './Ball';
 
 interface IState {
@@ -36,9 +36,11 @@ const Scene: ForwardRefRenderFunction<
     const claw1 = useGLTF("/claw1.glb");
     const claw2 = useGLTF("/claw2.glb");
     const claw3 = useGLTF("/claw3.glb");
+    const blueBall = useGLTF("/ball-blue.glb");
+
+    const balls = useMemo(() => [blueBall, blueBall, blueBall, blueBall, blueBall, blueBall], [blueBall]);
 
     const [showScene, setShowScene] = useState<any>();
-    const [balls, setBalls] = useState<any[]>();
     const clawRestRef = useRef<any>();
     const clawRest1Ref = useRef<any>();
     const clawRest2Ref = useRef<any>();
@@ -48,7 +50,7 @@ const Scene: ForwardRefRenderFunction<
     const claw3Ref = useRef<any>();
     const animationQueueRef = useRef<any[]>([]);
     const selectedIndexRef = useRef<number | null>(null);
-    const ballRefs = useRef(Array.from({ length: 18 }, () => createRef<any>()));
+    const ballRefs = useRef(Array.from({ length: 27 }, () => createRef<any>()));
 
     const joystickRef = useRef<any>({ x: 0, z: 0 });
     const onJoystick = (x: number, z: number) => {
@@ -129,13 +131,6 @@ const Scene: ForwardRefRenderFunction<
     }
 
     const initGame = useCallback(async () => {
-        const red = await loadOBJ('/ball.obj', '/red.mtl');
-        const green = await loadOBJ('/ball.obj', '/green.mtl');
-        const blue = await loadOBJ('/ball.obj', '/blue.mtl');
-        const yellow = await loadOBJ('/ball.obj', '/yellow.mtl');
-        const pink = await loadOBJ('/ball.obj', '/pink.mtl');
-        const orange = await loadOBJ('/ball.obj', '/orange.mtl');
-        setBalls([red, green, blue, yellow, pink, orange]);
         setShowScene(true);
         setProgress(100);
         setTimeout(() => {
@@ -232,7 +227,7 @@ const Scene: ForwardRefRenderFunction<
                 />
                 <ambientLight intensity={2} />
                 <pointLight position={[-2, 5, 8]} intensity={50} castShadow />
-                <primitive object={floor.scene} receiveShadow />
+                <primitive object={floor.scene} receiveShadow position={[0, -0.25, 0]} />
                 <group ref={clawRestRef}>
                     <group position={[0, 3.28, 0]}>
                         <primitive object={clawRest.scene} />
@@ -255,23 +250,23 @@ const Scene: ForwardRefRenderFunction<
                     </group>
                 </group>
                 <Physics>
-                    {Array.from({ length: 18 }).map((_, index) => {
+                    {Array.from({ length: 27 }).map((_, index) => {
                         const x = Math.floor((index % 9) / 3) * 0.3;
-                        const y = 2.5 + Math.floor(index / 9) * 0.3;
-                        const z = (index % 3) * 0.3;
-                        return <Ball key={index} ref={ballRefs.current[index]} obj={balls?.[index % 6]} position={[x, y, z]} />
+                        const y = 3 + Math.floor(index / 9) * 0.3;
+                        const z = -0.25 + (index % 3) * 0.3;
+                        return <Ball key={index} ref={ballRefs.current[index]} obj={balls[index % 6].scene} position={[x, y, z]} />
                     })}
                     <RigidBody ccd type="fixed" colliders="trimesh">
                         <primitive object={clawMachine.scene} castShadow />
                     </RigidBody>
                 </Physics >
                 <OrbitControls
-                    minAzimuthAngle={angleToRadian(-15)}
-                    maxAzimuthAngle={angleToRadian(15)}
+                    minAzimuthAngle={angleToRadian(-10)}
+                    maxAzimuthAngle={angleToRadian(10)}
                     minPolarAngle={angleToRadian(65)}
                     maxPolarAngle={angleToRadian(85)}
                     minDistance={2.5}
-                    maxDistance={4.5}
+                    maxDistance={3.75}
                     target={[0.0, 2.4, 0.0]}
                     enablePan={false}
                 />

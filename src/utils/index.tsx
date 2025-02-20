@@ -1,6 +1,3 @@
-import { DoubleSide, Group, Object3DEventMap } from "three";
-import { MTLLoader, OBJLoader } from "three/examples/jsm/Addons.js";
-
 export const angleToRadian = (a: number) => {
     return Math.PI * a / 180;
 }
@@ -31,31 +28,4 @@ export const getScale = (s1: any, s2: any, a: any) => {
         y: s1[1] + (s2[1] - s1[1]) * a,
         z: s1[2] + (s2[2] - s1[2]) * a,
     }
-}
-
-export const loadOBJ = async (objPath: string, mtlPath: string, castShadow: boolean = false, receiveShadow: boolean = false) => {
-    const mtlLoader = new MTLLoader();
-    const objLoader = new OBJLoader();
-
-    const mtl = await new Promise<MTLLoader.MaterialCreator>((resolve) => mtlLoader.load(mtlPath, (materials: any) => resolve(materials)));
-
-    if (mtl) {
-        mtl.preload();
-        for (const materialName in mtl.materials) {
-            const material = mtl.materials[materialName];
-            material.side = DoubleSide;
-        }
-        objLoader.setMaterials(mtl);
-    }
-
-    const obj = await new Promise<Group<Object3DEventMap>>((resolve) => objLoader.load(objPath, (object: any) => resolve(object)));
-
-    obj.traverse((child: any) => {
-        if (child.isMesh) {
-            child.castShadow = castShadow;
-            child.receiveShadow = receiveShadow;
-        }
-    });
-
-    return obj;
 }
