@@ -37,10 +37,16 @@ const Scene: ForwardRefRenderFunction<
     const claw2 = useGLTF("/claw2.glb");
     const claw3 = useGLTF("/claw3.glb");
     const blueBall = useGLTF("/ball-blue.glb");
+    const greenBall = useGLTF("/ball-green.glb");
+    const orangeBall = useGLTF("/ball-orange.glb");
+    const pinkBall = useGLTF("/ball-pink.glb");
+    const redBall = useGLTF("/ball-red.glb");
+    const yellowBall = useGLTF("/ball-yellow.glb");
 
-    const balls = useMemo(() => [blueBall, blueBall, blueBall, blueBall, blueBall, blueBall], [blueBall]);
+    const balls = [blueBall, greenBall, orangeBall, pinkBall, redBall, yellowBall]
 
     const [showScene, setShowScene] = useState<any>();
+    const [isPicking, setIsPicking] = useState(false);
     const clawRestRef = useRef<any>();
     const clawRest1Ref = useRef<any>();
     const clawRest2Ref = useRef<any>();
@@ -50,7 +56,7 @@ const Scene: ForwardRefRenderFunction<
     const claw3Ref = useRef<any>();
     const animationQueueRef = useRef<any[]>([]);
     const selectedIndexRef = useRef<number | null>(null);
-    const ballRefs = useRef(Array.from({ length: 27 }, () => createRef<any>()));
+    const ballRefs = useRef(Array.from({ length: 54 }, () => createRef<any>()));
 
     const joystickRef = useRef<any>({ x: 0, z: 0 });
     const onJoystick = (x: number, z: number) => {
@@ -60,25 +66,32 @@ const Scene: ForwardRefRenderFunction<
 
     const catchBall = () => {
         const x1 = clawRest1Ref.current.position.x;
+        const y1 = clawRestRef.current.position.y;
         const z1 = clawRestRef.current.position.z;
-        ballRefs.current.map((ballRef, index) => {
+        const distances = ballRefs.current.map((ballRef, index) => {
             const translation = ballRef.current?.translation();
             const x2 = translation.x;
+            const y2 = translation.y;
             const z2 = translation.z;
-            const d = Math.hypot(x2 - x1, z2 - z1);
-            if (d < 0.115) {
-                selectedIndexRef.current = index;
-            }
+            return {
+                distance: Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + (z2 - z1) * (z2 - z1)),
+                index,
+            };
         });
 
-        if (selectedIndexRef.current) {
-            ballRefs.current[selectedIndexRef.current].current.setGravityScale(0);
+        distances.sort((d1, d2) => d1.distance - d2.distance);
+        selectedIndexRef.current = distances[0].index;
+
+        if (selectedIndexRef.current != null) {
+            const selectedBall = ballRefs.current[selectedIndexRef.current].current;
+            selectedBall.setGravityScale(0);
         }
     };
 
     const releaseBall = () => {
-        if (selectedIndexRef.current) {
-            ballRefs.current[selectedIndexRef.current].current.setGravityScale(1);
+        if (selectedIndexRef.current != null) {
+            const selectedBall = ballRefs.current[selectedIndexRef.current].current;
+            selectedBall.setGravityScale(1);
             selectedIndexRef.current = null;
         }
     }
@@ -87,25 +100,27 @@ const Scene: ForwardRefRenderFunction<
         return [
             { ref: claw1Ref, name: 'claw1', rotation: [0, 0, 0], start: 0, duration: 0.3 },
             { ref: claw2Ref, name: 'claw2', rotation: [0, 0, 0], start: 0, duration: 0.3 },
-            { ref: claw3Ref, name: 'claw3', rotation: [0, 0, 0], start: 0, duration: 0.3 },
+            { ref: claw3Ref, name: 'claw3', rotation: [0, 0, 0], start: 0, duration: 0.3, cb: () => setIsPicking(false) },
         ];
     }, []);
 
     const releaseAnimationSet = useMemo(() => {
         return [
-            { ref: clawRest1Ref, name: 'clawRest1', position: [-0.6, 0, 0], start: 0, duration: 1.5 },
+            { ref: clawRest1Ref, name: 'clawRest1', position: [-0.75, 0, 0], start: 0, duration: 1.5 },
             { ref: clawRestRef, name: 'clawRest', position: [0, 0, 0.5], start: 0, duration: 1.5 },
             { ref: claw1Ref, name: 'claw1', rotation: [0, 0, 0], start: 1.7, duration: 0.3 },
             { ref: claw2Ref, name: 'claw2', rotation: [0, 0, 0], start: 1.7, duration: 0.3 },
             { ref: claw3Ref, name: 'claw3', rotation: [0, 0, 0], start: 1.7, duration: 0.3, cb: releaseBall },
             { ref: clawRest1Ref, name: 'clawRest1', position: [0, 0, 0], start: 2.2, duration: 1.5 },
-            { ref: clawRestRef, name: 'clawRest', position: [0, 0, 0], start: 2.2, duration: 1.5 },
+            { ref: clawRestRef, name: 'clawRest', position: [0, 0, 0], start: 2.2, duration: 1.5, cb: () => setIsPicking(false) },
         ]
     }, []);
 
     const playNextAnimation = useCallback(() => {
         setTimeout(() => {
-            if (selectedIndexRef.current) {
+            if (selectedIndexRef.current != null) {
+                const selectedBall = ballRefs.current[selectedIndexRef.current].current;
+                selectedBall.setLinvel({ x: 0, y: 0, z: 0 });
                 animationQueueRef.current.push({ animationSet: releaseAnimationSet, startTime: 0, isPlaying: false });
             } else {
                 animationQueueRef.current.push({ animationSet: spreadClawAnimation, startTime: 0, isPlaying: false });
@@ -126,8 +141,9 @@ const Scene: ForwardRefRenderFunction<
     }, [playNextAnimation]);
 
     const onPick = () => {
+        if (isPicking) return;
+        setIsPicking(true);
         animationQueueRef.current.push({ animationSet: catchAnimationSet, startTime: 0, isPlaying: false });
-        playNextAnimation();
     }
 
     const initGame = useCallback(async () => {
@@ -152,7 +168,7 @@ const Scene: ForwardRefRenderFunction<
             clawRest1Ref.current.position.x = x;
         }
 
-        if (selectedIndexRef.current) {
+        if (selectedIndexRef.current != null) {
             const x = clawRest1Ref.current.position.x;
             const y = clawRest3Ref.current.position.y;
             const z = clawRestRef.current.position.z;
@@ -219,61 +235,58 @@ const Scene: ForwardRefRenderFunction<
         });
     });
 
-    if (showScene) {
-        return (
-            <>
-                <Environment
-                    files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/dancing_hall_1k.hdr"
-                />
-                <ambientLight intensity={2} />
-                <pointLight position={[-2, 5, 8]} intensity={50} castShadow />
-                <primitive object={floor.scene} receiveShadow position={[0, -0.25, 0]} />
-                <group ref={clawRestRef}>
-                    <group position={[0, 3.28, 0]}>
-                        <primitive object={clawRest.scene} />
-                        <group ref={clawRest1Ref} >
-                            <primitive object={clawRest1.scene} />
-                            <primitive ref={clawRest2Ref} object={clawRest2.scene} position={[0, 0.36, 0]} />
-                            <group ref={clawRest3Ref}>
-                                <primitive object={clawRest3.scene} />
-                                <group rotation={[0, -2.0944, 0]}>
-                                    <primitive ref={claw1Ref} object={claw3.scene} position={[0, 0, 0.113]} />
-                                </group>
-                                <group>
-                                    <primitive ref={claw2Ref} object={claw1.scene} position={[0, 0, 0.113]} />
-                                </group>
-                                <group rotation={[0, 2.0944, 0]}>
-                                    <primitive ref={claw3Ref} object={claw2.scene} position={[0, 0, 0.113]} />
-                                </group>
+    return (
+        <>
+            <Environment
+                files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/dancing_hall_1k.hdr"
+            />
+            <ambientLight intensity={2} />
+            <pointLight position={[-2, 5, 8]} intensity={50} castShadow />
+            <primitive object={floor.scene} receiveShadow position={[0, -0.25, 0]} />
+            <group ref={clawRestRef}>
+                <group position={[0, 3.28, 0]}>
+                    <primitive object={clawRest.scene} />
+                    <group ref={clawRest1Ref} >
+                        <primitive object={clawRest1.scene} />
+                        <primitive ref={clawRest2Ref} object={clawRest2.scene} position={[0, 0.36, 0]} />
+                        <group ref={clawRest3Ref}>
+                            <primitive object={clawRest3.scene} />
+                            <group rotation={[0, -2.0944, 0]}>
+                                <primitive ref={claw1Ref} object={claw3.scene} position={[0, 0, 0.113]} />
+                            </group>
+                            <group>
+                                <primitive ref={claw2Ref} object={claw1.scene} position={[0, 0, 0.113]} />
+                            </group>
+                            <group rotation={[0, 2.0944, 0]}>
+                                <primitive ref={claw3Ref} object={claw2.scene} position={[0, 0, 0.113]} />
                             </group>
                         </group>
                     </group>
                 </group>
-                <Physics>
-                    {Array.from({ length: 27 }).map((_, index) => {
-                        const x = Math.floor((index % 9) / 3) * 0.3;
-                        const y = 3 + Math.floor(index / 9) * 0.3;
-                        const z = -0.25 + (index % 3) * 0.3;
-                        return <Ball key={index} ref={ballRefs.current[index]} obj={balls[index % 6].scene} position={[x, y, z]} />
-                    })}
-                    <RigidBody ccd type="fixed" colliders="trimesh">
-                        <primitive object={clawMachine.scene} castShadow />
-                    </RigidBody>
-                </Physics >
-                <OrbitControls
-                    minAzimuthAngle={angleToRadian(-10)}
-                    maxAzimuthAngle={angleToRadian(10)}
-                    minPolarAngle={angleToRadian(65)}
-                    maxPolarAngle={angleToRadian(85)}
-                    minDistance={2.5}
-                    maxDistance={3.75}
-                    target={[0.0, 2.4, 0.0]}
-                    enablePan={false}
-                />
-            </>
-        )
-    }
-    return <></>
+            </group>
+            <Physics>
+                {showScene && Array.from({ length: 54 }).map((_, index) => {
+                    const x = 0.25 + Math.floor((index % 9) / 3) * 0.3;
+                    const y = 2 + Math.floor(index / 9) * 0.3;
+                    const z = -0.5 + (index % 3) * 0.3;
+                    return <Ball key={index} ref={ballRefs.current[index]} obj={balls[index % 6].scene} position={[x, y, z]} />
+                })}
+                <RigidBody ccd type="fixed" colliders="trimesh">
+                    <primitive object={clawMachine.scene} castShadow />
+                </RigidBody>
+            </Physics >
+            <OrbitControls
+                minAzimuthAngle={angleToRadian(-10)}
+                maxAzimuthAngle={angleToRadian(10)}
+                minPolarAngle={angleToRadian(65)}
+                maxPolarAngle={angleToRadian(85)}
+                minDistance={2.5}
+                maxDistance={5.5}
+                target={[0.0, 2.4, 0.0]}
+                enablePan={false}
+            />
+        </>
+    )
 }
 
 export default forwardRef(Scene);

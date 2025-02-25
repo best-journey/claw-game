@@ -1,4 +1,4 @@
-import { Box, Modal, ModalContent, ModalOverlay } from '@chakra-ui/react';
+import { Box, Modal, ModalContent, ModalOverlay, Text } from '@chakra-ui/react';
 import { Canvas } from '@react-three/fiber';
 import { useRef, useState } from 'react';
 import ButtonsControl from '../components/ButtonsControl';
@@ -18,6 +18,9 @@ const Game = () => {
                 <ModalOverlay bg='linear-gradient(135deg, #6f00ff, #00ffcc)' />
                 <ModalContent my={0} py='120px' h='full' display='flex' justifyContent='end' alignItems='center' bg='none' shadow='none'>
                     <ProgressBar progress={progress} />
+                    <Text fontSize='xx-large' color='#dd3c6e'>
+                        Loading...
+                    </Text>
                 </ModalContent>
             </Modal>
             <JoystickControl onJoystick={(x, z) => ref.current?.onJoystick(x, z)} />
