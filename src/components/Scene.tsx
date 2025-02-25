@@ -38,12 +38,11 @@ const Scene: ForwardRefRenderFunction<
     const claw3 = useGLTF("/claw3.glb");
     const blueBall = useGLTF("/ball-blue.glb");
     const greenBall = useGLTF("/ball-green.glb");
-    const orangeBall = useGLTF("/ball-orange.glb");
     const pinkBall = useGLTF("/ball-pink.glb");
     const redBall = useGLTF("/ball-red.glb");
     const yellowBall = useGLTF("/ball-yellow.glb");
 
-    const balls = [blueBall, greenBall, orangeBall, pinkBall, redBall, yellowBall]
+    const balls = [blueBall, greenBall, pinkBall, redBall, yellowBall]
 
     const [showScene, setShowScene] = useState<any>();
     const [isPicking, setIsPicking] = useState(false);
@@ -66,7 +65,6 @@ const Scene: ForwardRefRenderFunction<
 
     const catchBall = () => {
         const x1 = clawRest1Ref.current.position.x;
-        const y1 = clawRestRef.current.position.y;
         const z1 = clawRestRef.current.position.z;
         const distances = ballRefs.current.map((ballRef, index) => {
             const translation = ballRef.current?.translation();
@@ -74,8 +72,9 @@ const Scene: ForwardRefRenderFunction<
             const y2 = translation.y;
             const z2 = translation.z;
             return {
-                distance: Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + (z2 - z1) * (z2 - z1)),
+                distance: Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - 2) * (y2 - 2) + (z2 - z1) * (z2 - z1)),
                 index,
+                translation,
             };
         });
 
@@ -269,7 +268,7 @@ const Scene: ForwardRefRenderFunction<
                     const x = 0.25 + Math.floor((index % 9) / 3) * 0.3;
                     const y = 2 + Math.floor(index / 9) * 0.3;
                     const z = -0.5 + (index % 3) * 0.3;
-                    return <Ball key={index} ref={ballRefs.current[index]} obj={balls[index % 6].scene} position={[x, y, z]} />
+                    return <Ball key={index} ref={ballRefs.current[index]} obj={balls[index % 5].scene} position={[x, y, z]} />
                 })}
                 <RigidBody ccd type="fixed" colliders="trimesh">
                     <primitive object={clawMachine.scene} castShadow />
