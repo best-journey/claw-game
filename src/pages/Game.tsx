@@ -1,4 +1,4 @@
-import { Box, Modal, ModalContent, ModalOverlay, Text } from '@chakra-ui/react';
+import { Box, Modal, ModalContent, ModalOverlay } from '@chakra-ui/react';
 import { Canvas } from '@react-three/fiber';
 import { useRef, useState } from 'react';
 import ButtonsControl from '../components/ButtonsControl';
